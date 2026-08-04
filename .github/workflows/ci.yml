@@ -1,0 +1,71 @@
+# micro-monorepo CI 示例
+# 一次 install -> 全仓校验 -> 每个子应用独立构建、独立产出制品（可各自独立部署）
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+
+  build-apps:
+    needs: verify
+    runs-on: ubuntu-latest
+    strategy:
+      # 每个子应用独立构建、独立失败、独立发布 —— micro-monorepo 的关键特征
+      fail-fast: false
+      matrix:
+        app: [app-main, app-order, app-goods]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run build --filter=@demo/${{ matrix.app }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-dist
+          path: packages/${{ matrix.app }}/dist
+
+  # 只有公共包才发 npm，跨业务域复用的唯一出口
+  release-libs:
+    needs: verify
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: changesets/action@v1
+        with:
+          version: pnpm version-packages
+          publish: pnpm release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

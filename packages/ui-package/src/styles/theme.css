@@ -1,0 +1,38 @@
+/* ============================================================
+   @demo/ui-package 设计令牌
+   基座与所有子应用共用同一套变量，保证微前端拼装后视觉一致
+   ============================================================ */
+:root {
+  --demo-color-primary: #2f6bff;
+  --demo-color-primary-weak: #eaf0ff;
+  --demo-color-success: #12a150;
+  --demo-color-success-weak: #e6f6ed;
+  --demo-color-warning: #d98700;
+  --demo-color-warning-weak: #fdf3e2;
+  --demo-color-danger: #e0403f;
+  --demo-color-danger-weak: #fdeceb;
+  --demo-color-info: #6b7280;
+  --demo-color-info-weak: #f1f2f4;
+
+  --demo-text-primary: #1c2430;
+  --demo-text-regular: #4a5568;
+  --demo-text-secondary: #8a94a6;
+
+  --demo-bg-page: #f5f7fa;
+  --demo-bg-card: #ffffff;
+  --demo-border-color: #e3e8ef;
+
+  --demo-radius-sm: 6px;
+  --demo-radius-md: 10px;
+  --demo-radius-lg: 14px;
+
+  --demo-shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 16px rgba(16, 24, 40, 0.06);
+
+  --demo-font-family:
+    'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.demo-reset,
+.demo-reset * {
+  box-sizing: border-box;
+}

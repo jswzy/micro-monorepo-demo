@@ -1,0 +1,25 @@
+{
+  "name": "@demo/app-main",
+  "version": "0.0.0",
+  "private": true,
+  "description": "微前端基座应用：只负责布局、菜单、微应用加载与跨应用通信",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5173 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "typecheck": "vue-tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@demo/shared-utils": "workspace:*",
+    "@demo/ui-package": "workspace:*",
+    "vue": "catalog:",
+    "vue-router": "catalog:",
+    "wujie-vue3": "^1.0.28"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "catalog:",
+    "vite": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

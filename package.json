@@ -1,0 +1,62 @@
+{
+  "name": "@demo/micro-monorepo-demo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "micro-monorepo 微前端 Demo：一仓一业务域，packages 内含多个独立可部署子应用 + 域内公共包",
+  "packageManager": "pnpm@10.32.1",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "engines": {
+    "node": ">=18.18.0",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "dev:main": "pnpm --filter @demo/app-main dev",
+    "dev:order": "pnpm --filter @demo/app-order dev",
+    "dev:goods": "pnpm --filter @demo/app-goods dev",
+
+    "build": "turbo run build",
+    "build:main": "turbo run build --filter=@demo/app-main",
+    "build:order": "turbo run build --filter=@demo/app-order",
+    "build:goods": "turbo run build --filter=@demo/app-goods",
+    "build:libs": "turbo run build --filter=@demo/shared-utils --filter=@demo/ui-package",
+
+    "preview:main": "pnpm --filter @demo/app-main preview",
+    "preview:order": "pnpm --filter @demo/app-order preview",
+    "preview:goods": "pnpm --filter @demo/app-goods preview",
+
+    "typecheck": "turbo run typecheck",
+    "lint": "eslint . --ext .js,.cjs,.ts,.tsx,.vue --max-warnings 0",
+    "lint:fix": "eslint . --ext .js,.cjs,.ts,.tsx,.vue --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,vue,js,cjs,json,md,css,html,yaml,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,vue,js,cjs,json,md,css,html,yaml,yml}\"",
+
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm build:libs && changeset publish",
+
+    "clean": "rimraf \"packages/*/dist\" \"packages/*/.turbo\" .turbo",
+    "clean:all": "pnpm clean && rimraf \"packages/*/node_modules\" node_modules"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.12",
+    "@types/node": "^22.10.7",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "@vitejs/plugin-vue": "catalog:",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-vue": "^9.32.0",
+    "vue-eslint-parser": "^9.4.3",
+    "prettier": "^3.4.2",
+    "rimraf": "^6.0.1",
+    "turbo": "^2.3.4",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

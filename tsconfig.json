@@ -1,0 +1,39 @@
+{
+  // ============================================================
+  // 全局 TS 配置：所有 packages 通过 "extends": "../../tsconfig.json" 继承
+  // 子包内不再重复声明 target / lib / strict 等基础项
+  // ============================================================
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "preserve",
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": false,
+
+    // 域内公共包的路径映射：编辑器直接跳到源码，享受完整类型提示
+    "baseUrl": ".",
+    "paths": {
+      "@demo/shared-utils": ["packages/shared-utils/src/index.ts"],
+      "@demo/shared-utils/*": ["packages/shared-utils/src/*"],
+      "@demo/ui-package": ["packages/ui-package/src/index.ts"],
+      "@demo/ui-package/*": ["packages/ui-package/src/*"]
+    }
+  },
+  "files": [],
+  "exclude": ["**/node_modules", "**/dist", "**/.turbo"]
+}
