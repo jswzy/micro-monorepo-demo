@@ -15,6 +15,7 @@ export * from './storage'
 export * from './request'
 export * from './event-bus'
 export * from './micro'
+export * from './store'
 export * from './mock'
 
 export const SHARED_UTILS_VERSION = '0.1.0'

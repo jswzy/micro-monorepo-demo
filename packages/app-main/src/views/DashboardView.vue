@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import WujieVue from 'wujie-vue3'
 import {
   DOMAIN,
   NAMESPACE,
@@ -8,6 +9,7 @@ import {
   fetchGoodsSummary,
   fetchOrderSummary,
   formatDate,
+  type MicroEventName,
 } from '@demo/shared-utils'
 import { DemoCard, DemoStatCard, DemoTag, UI_PACKAGE_VERSION } from '@demo/ui-package'
 import { useMicroStats } from '../composables/useMicroStats'
@@ -22,6 +24,49 @@ onMounted(async () => {
   orderSummary.value = await fetchOrderSummary()
   goodsSummary.value = await fetchGoodsSummary()
 })
+
+/* ----------------------------- 跨应用通信总线监控 ----------------------------- */
+// 订阅 wujie 共享 bus 上的全部事件，实时展示「两个子应用之间」的传值过程
+interface BusLog {
+  id: number
+  event: MicroEventName
+  payload: unknown
+  time: string
+}
+
+const bus = WujieVue.bus
+const monitoredEvents: MicroEventName[] = [
+  'order',
+  'goods',
+  'goods:pick',
+  'order:focus-goods',
+  'navigate',
+  'shared:state',
+]
+
+const logs = ref<BusLog[]>([])
+let seq = 0
+
+const handlers = monitoredEvents.map((event) => {
+  const handler = (payload: unknown) => {
+    logs.value.unshift({ id: ++seq, event, payload, time: formatDate(Date.now(), 'HH:mm:ss') })
+    if (logs.value.length > 30) logs.value.pop()
+  }
+  bus.$on(event, handler)
+  return { event, handler }
+})
+
+onBeforeUnmount(() => {
+  handlers.forEach(({ event, handler }) => bus.$off(event, handler))
+})
+
+const fmtPayload = (payload: unknown): string => {
+  try {
+    return JSON.stringify(payload)
+  } catch {
+    return String(payload)
+  }
+}
 
 const packages = [
   { name: `${NAMESPACE}/app-main`, role: '基座应用', deploy: '独立部署', type: 'primary' as const },
@@ -85,6 +130,28 @@ const packages = [
         </template>
       </DemoCard>
     </div>
+
+    <DemoCard
+      title="跨应用通信总线"
+      subtitle="监听 wujie 共享 bus：子应用之间经同一总线互发消息，下方实时滚动"
+    >
+      <p v-if="!logs.length" class="bus-line">
+        暂无事件 —— 打开左侧「订单中心 / 商品中心」，在子应用里点「推给商品域 / 推给订单域」试试
+      </p>
+      <ul v-else class="bus-log">
+        <li v-for="item in logs" :key="item.id" class="bus-log__item">
+          <span class="bus-log__time">{{ item.time }}</span>
+          <code class="bus-log__event">{{ item.event }}</code>
+          <span class="bus-log__payload">{{ fmtPayload(item.payload) }}</span>
+        </li>
+      </ul>
+      <template #footer>
+        <span class="muted">
+          事件契约由 @demo/shared-utils 的 MicroEventPayload 约束（类型安全）；
+          goods:pick / order:focus-goods / shared:state 即「子应用 ↔ 子应用」传值证据
+        </span>
+      </template>
+    </DemoCard>
 
     <DemoCard title="边界约束" subtitle="micro-monorepo 的灵魂：域内自由联调，跨域必须发包">
       <div class="rules">
@@ -215,5 +282,44 @@ code {
 .muted {
   font-size: 12px;
   color: var(--demo-text-secondary);
+}
+.bus-log {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.bus-log__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  background: var(--demo-bg-page);
+  border: 1px solid var(--demo-border-color);
+  border-radius: var(--demo-radius-sm);
+  font-size: 12px;
+}
+.bus-log__time {
+  color: var(--demo-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.bus-log__event {
+  flex-shrink: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--demo-color-primary);
+  background: var(--demo-color-primary-weak);
+  padding: 1px 7px;
+  border-radius: 4px;
+}
+.bus-log__payload {
+  flex: 1;
+  color: var(--demo-text-regular);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

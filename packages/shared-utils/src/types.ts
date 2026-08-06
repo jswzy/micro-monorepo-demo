@@ -74,14 +74,32 @@ export interface MicroAppMeta {
   icon?: string
 }
 
-/** 跨应用事件载荷（基座 <-> 子应用通信契约） */
+/** 事件来源：标识是哪一方发出的跨应用消息 */
+export type MicroAppSource = 'app-order' | 'app-goods' | 'app-main'
+
+/** 跨应用事件载荷（基座 <-> 子应用 / 子应用 <-> 子应用 三向通信契约） */
 export interface MicroEventPayload {
+  /** 子应用 -> 基座：订单域统计上报 */
   order: { total: number; pendingCount: number }
+  /** 子应用 -> 基座：商品域统计上报 */
   goods: { total: number; offSaleCount: number }
+  /** 基座 -> 子应用：导航跳转 */
   navigate: { path: string }
+  /** 子应用 -> 子应用：商品域把选中的商品推送给订单域 */
+  'goods:pick': { sku: string; name: string; price: number; source: MicroAppSource }
+  /** 子应用 -> 子应用：订单域把关注的商品名推给商品域，让其在列表里高亮 */
+  'order:focus-goods': { goodsName: string; source: MicroAppSource }
+  /** 任意方 -> 任意方：共享状态变更（跨应用响应式同步的底层通道） */
+  'shared:state': { key: string; value: unknown; source: MicroAppSource }
 }
 
 export type MicroEventName = keyof MicroEventPayload
+
+/** 商品域推给订单域的「选中商品」载荷（命名别名，便于子应用引用） */
+export type GoodsPicked = MicroEventPayload['goods:pick']
+
+/** 订单域推给商品域的「关注商品名」载荷 */
+export type OrderFocusGoods = MicroEventPayload['order:focus-goods']
 
 /* ------------------------------------------------------------------
  * 微前端（wujie）注入到 window 上的全局变量声明

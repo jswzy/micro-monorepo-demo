@@ -123,6 +123,54 @@ pnpm format      # 全仓格式化
 
 ---
 
+## 四·五、两个子应用之间如何传值（核心实战）
+
+运行时每个 app 是独立应用，它们靠 **wujie 共享 bus** 互通（基座、订单、商品三方共用同一个 host bus 实例）。`shared-utils` 把它封装成 `microBus`，并提供「事件」与「共享状态」两套机制：
+
+### 1) 事件传值（一次性通知）
+
+```ts
+import { microBus } from '@demo/shared-utils'
+
+// 商品域 -> 订单域：把选中的商品推过去
+microBus.emit('goods:pick', { sku, name, price, source: 'app-goods' })
+
+// 订单域监听（也来自商品域）
+microBus.on('goods:pick', (payload) => { /* 实时收到 */ })
+```
+
+内置事件契约（类型安全，写错字段/事件名编译期报错）：
+
+| 事件 | 方向 | 载荷 |
+| --- | --- | --- |
+| `goods:pick` | 商品域 → 订单域 | `{ sku, name, price, source }` |
+| `order:focus-goods` | 订单域 → 商品域 | `{ goodsName, source }` |
+
+### 2) 共享状态（响应式同步，像本地 ref 一样用）
+
+```ts
+import { useSharedState } from '@demo/ui-package'
+
+// 订单域写入
+const { value, set } = useSharedState('cross:customer', '', 'app-order')
+set('张三')
+
+// 商品域订阅同一份 key，value 自动同步更新
+const { value } = useSharedState('cross:customer', '', 'app-goods')
+// value 即「张三」
+```
+
+底层 = `shared-utils/src/store.ts`（`getShared/setShared/subscribeShared`），经 `microBus` 广播；Vue 响应式封装在 `ui-package` 的 `useSharedState`。
+
+### 3) 体验路径（启动 `pnpm dev` 后访问基座 http://localhost:5173）
+
+- **订单中心**：点表格「推给商品域」→ 商品中心对应商品**高亮**（事件传值）。
+- **商品中心**：点「推给订单域 / 随机推给订单域」→ 订单中心「② 商品域 → 订单域」卡片**实时收到**（事件传值）。
+- **订单中心**：在「共享状态」输入框填客户名 → 商品中心顶部 banner **实时同步**（响应式共享状态）。
+- **基座仪表盘**：「跨应用通信总线」面板滚动展示 bus 上的所有事件，是子应用互相传值的直接证据。
+
+---
+
 ## 五、边界约束（重要）
 
 ```

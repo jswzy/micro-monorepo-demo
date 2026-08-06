@@ -12,8 +12,8 @@ defineProps<{
 
 const emit = defineEmits<{ rowClick: [row: T] }>()
 
-function cellText(row: T, key: Extract<keyof T, string>): string {
-  const value = row[key]
+function cellText(row: T, key: string): string {
+  const value = (row as Record<string, unknown>)[key]
   return value === null || value === undefined ? '-' : String(value)
 }
 </script>
@@ -39,8 +39,8 @@ function cellText(row: T, key: Extract<keyof T, string>): string {
             :key="col.key"
             :style="{ textAlign: col.align ?? 'left' }"
           >
-            <slot :name="`cell-${col.key}`" :row="row" :value="row[col.key]">
-              {{ cellText(row, col.key) }}
+            <slot :name="`cell-${col.key}`" :row="row" :value="(row as Record<string, unknown>)[(col.field ?? col.key)]">
+              {{ cellText(row, col.field ?? col.key) }}
             </slot>
           </td>
         </tr>

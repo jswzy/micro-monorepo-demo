@@ -29,6 +29,7 @@ export {
 }
 
 export * from './types'
+export * from './composables/useSharedState'
 
 const components = {
   DemoButton,
